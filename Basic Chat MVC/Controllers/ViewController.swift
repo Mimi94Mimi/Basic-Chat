@@ -137,6 +137,7 @@
           case .poweredOn:
               print("Is Powered On.")
               startScanning()
+//              scanForBLEDevices()
           case .unsupported:
               print("Is Unsupported.")
           case .unauthorized:
@@ -152,24 +153,27 @@
 
       // MARK: - Discover
       func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-        print("Function: \(#function),Line: \(#line)")
+          if peripheral.name == "raspberrypi" {
+              print("Function: \(#function),Line: \(#line)")
+              
+              bluefruitPeripheral = peripheral
+              
+              if peripheralArray.contains(peripheral) {
+                  print("Duplicate Found.")
+              } else {
+                  peripheralArray.append(peripheral)
+                  rssiArray.append(RSSI)
+              }
+            
+              peripheralFoundLabel.text = "Peripherals Found: \(peripheralArray.count)"
+              
+              bluefruitPeripheral.delegate = self
+              
+              print("Peripheral Discovered: \(peripheral)")
+              print ("Advertisement Data : \(advertisementData)")
+              self.tableView.reloadData()
+          }
 
-        bluefruitPeripheral = peripheral
-
-        if peripheralArray.contains(peripheral) {
-            print("Duplicate Found.")
-        } else {
-          peripheralArray.append(peripheral)
-          rssiArray.append(RSSI)
-        }
-
-        peripheralFoundLabel.text = "Peripherals Found: \(peripheralArray.count)"
-
-        bluefruitPeripheral.delegate = self
-
-        print("Peripheral Discovered: \(peripheral)")
-
-        self.tableView.reloadData()
       }
 
       // MARK: - Connect
@@ -184,7 +188,6 @@
   extension ViewController: CBPeripheralDelegate {
 
       func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-
         guard let services = peripheral.services else { return }
         for service in services {
           peripheral.discoverCharacteristics(nil, for: service)
@@ -202,23 +205,46 @@
 
       for characteristic in characteristics {
 
-        if characteristic.uuid.isEqual(CBUUIDs.BLE_Characteristic_uuid_Rx)  {
-
-          rxCharacteristic = characteristic
-
-          BlePeripheral.connectedRXChar = rxCharacteristic
-
-          peripheral.setNotifyValue(true, for: rxCharacteristic!)
-          peripheral.readValue(for: characteristic)
-
-          print("RX Characteristic: \(rxCharacteristic.uuid)")
-        }
-
-        if characteristic.uuid.isEqual(CBUUIDs.BLE_Characteristic_uuid_Tx){
-          txCharacteristic = characteristic
-          BlePeripheral.connectedTXChar = txCharacteristic
-          print("TX Characteristic: \(txCharacteristic.uuid)")
-        }
+//        if characteristic.uuid.isEqual(CBUUIDs.BLE_Characteristic_uuid_Rx)  {
+//
+//          rxCharacteristic = characteristic
+//
+//          BlePeripheral.connectedRXChar = rxCharacteristic
+//
+//          peripheral.setNotifyValue(true, for: rxCharacteristic!)
+//          peripheral.readValue(for: characteristic)
+//
+//          print("RX Characteristic: \(rxCharacteristic.uuid)")
+//        }
+//
+//        if characteristic.uuid.isEqual(CBUUIDs.BLE_Characteristic_uuid_Tx){
+//          txCharacteristic = characteristic
+//          BlePeripheral.connectedTXChar = txCharacteristic
+//          print("TX Characteristic: \(txCharacteristic.uuid)")
+//        }
+          
+          if CBUUIDs.characteristic_UUIDs.contains(characteristic.uuid) {
+              print("Characteristic: \(characteristic.uuid.uuidString) has been found.")
+              switch characteristic.uuid {
+                  case CBUUIDs.mode_UUID:
+                      BlePeripheral.modeChar = characteristic
+                      break
+                  case CBUUIDs.numOfPhoto_UUID:
+                      BlePeripheral.numOfPhotoChar = characteristic
+                      break
+                  case CBUUIDs.angle_UUID:
+                      BlePeripheral.angleChar = characteristic
+                      break
+                  case CBUUIDs.cameraState_UUID:
+                      BlePeripheral.cameraStateChar = characteristic
+                      break
+                  case CBUUIDs.shouldTakePhoto_UUID:
+                      BlePeripheral.shouldTakePhotoChar = characteristic
+                      break
+                  default:
+                      break
+              }
+          }
       }
       delayedConnection()
    }
