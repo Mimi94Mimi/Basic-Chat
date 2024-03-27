@@ -36,7 +36,7 @@ class ConsoleViewController: UIViewController {
         
         keyboardNotifications()
         
-        NotificationCenter.default.addObserver(self, selector: #selector(self.appendRxDataToTextView(notification:)), name: NSNotification.Name(rawValue: "Notify"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(self.appendRxDataToTextView(notification:)), name: NSNotification.Name("Notify"), object: nil)
         
         
         modeLabel.text = "mode:"
@@ -56,7 +56,8 @@ class ConsoleViewController: UIViewController {
     }
     
     @objc func appendRxDataToTextView(notification: Notification) -> Void{
-        consoleTextView.text.append("\n[Recv]: \(notification.object!) \n")
+//        consoleTextView.text.append("\n[Recv]: \(notification.object!) \n")
+        print("notify")
     }
     
     func appendTxDataToTextView(_ textField: UITextField){

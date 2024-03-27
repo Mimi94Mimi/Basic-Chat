@@ -237,9 +237,13 @@
                       break
                   case CBUUIDs.cameraState_UUID:
                       BlePeripheral.cameraStateChar = characteristic
+                      peripheral.readValue(for: BlePeripheral.cameraStateChar!)
+                      peripheral.setNotifyValue(true, for: BlePeripheral.cameraStateChar!)
                       break
                   case CBUUIDs.shouldTakePhoto_UUID:
                       BlePeripheral.shouldTakePhotoChar = characteristic
+                      peripheral.readValue(for: BlePeripheral.shouldTakePhotoChar!)
+                      peripheral.setNotifyValue(true, for: BlePeripheral.shouldTakePhotoChar!)
                       break
                   default:
                       break
@@ -253,18 +257,19 @@
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
 
-      var characteristicASCIIValue = NSString()
+        var characteristicASCIIValue = NSString()
 
-      guard characteristic == rxCharacteristic,
+        guard characteristic == BlePeripheral.cameraStateChar || characteristic == BlePeripheral.shouldTakePhotoChar,
 
-            let characteristicValue = characteristic.value,
-            let ASCIIstring = NSString(data: characteristicValue, encoding: String.Encoding.utf8.rawValue) else { return }
+        let characteristicValue = characteristic.value,
+        let ASCIIstring = NSString(data: characteristicValue, encoding: String.Encoding.utf8.rawValue) else { return }
 
         characteristicASCIIValue = ASCIIstring
 
       print("Value Recieved: \((characteristicASCIIValue as String))")
+      print("mimi")
 
-      NotificationCenter.default.post(name:NSNotification.Name(rawValue: "Notify"), object: "\((characteristicASCIIValue as String))")
+      NotificationCenter.default.post(name:NSNotification.Name("Notify"), object: "\((characteristicASCIIValue as String))")
     }
 
     func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {
