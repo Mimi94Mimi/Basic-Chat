@@ -266,10 +266,16 @@
 
         characteristicASCIIValue = ASCIIstring
 
-      print("Value Recieved: \((characteristicASCIIValue as String))")
-      print("mimi")
-
-      NotificationCenter.default.post(name:NSNotification.Name("Notify"), object: "\((characteristicASCIIValue as String))")
+//      print("Value Recieved: \((characteristicASCIIValue as String))")
+//      print("mimi")
+        
+        if (characteristic.isEqual(BlePeripheral.cameraStateChar)){
+            NotificationCenter.default.post(name:NSNotification.Name(rawValue: "NotifyCameraState"), object: "\((characteristicASCIIValue as String))")
+        }
+        if (characteristic.isEqual(BlePeripheral.shouldTakePhotoChar)){
+            NotificationCenter.default.post(name:NSNotification.Name(rawValue: "NotifyShouldTakePhoto"), object: "\((characteristicASCIIValue as String))")
+        }
+        
     }
 
     func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {

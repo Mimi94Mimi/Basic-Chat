@@ -26,7 +26,9 @@ class ConsoleViewController: UIViewController {
     @IBOutlet weak var numOfPhotoTextField: UITextField!
     @IBOutlet weak var angleTextField: UITextField!
     @IBOutlet weak var cameraStateControl: UISegmentedControl!
-    @IBOutlet weak var shouldTakeSwitch: UISwitch!
+    @IBOutlet weak var startShootingButton: UIButton!
+    @IBOutlet weak var shouldTakePhotoSwitch: UISwitch!
+    @IBOutlet weak var shutter: UIView!
     @IBOutlet weak var txLabel: UILabel!
     @IBOutlet weak var rxLabel: UILabel!
     
@@ -36,14 +38,13 @@ class ConsoleViewController: UIViewController {
         
         keyboardNotifications()
         
-        NotificationCenter.default.addObserver(self, selector: #selector(self.appendRxDataToTextView(notification:)), name: NSNotification.Name("Notify"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(self.handleNotifyCameraState(notification:)), name: NSNotification.Name(rawValue: "NotifyCameraState"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(self.handleNotifyShouldTakePhoto(notification:)), name: NSNotification.Name(rawValue: "NotifyShouldTakePhoto"), object: nil)
         
         
         modeLabel.text = "mode:"
         numOfPhotoLabel.text = "num_of_photo:"
         angleLabel.text = "angle:"
-        cameraStateLabel.text = "camera_state:"
-        shouldTakePhoto.text = "should_take_photo:"
         
         //    txLabel.text = "TX:\(String(BlePeripheral.connectedTXChar!.uuid.uuidString))"
         //    rxLabel.text = "RX:\(String(BlePeripheral.connectedRXChar!.uuid.uuidString))"
@@ -55,9 +56,45 @@ class ConsoleViewController: UIViewController {
         //    }
     }
     
-    @objc func appendRxDataToTextView(notification: Notification) -> Void{
-//        consoleTextView.text.append("\n[Recv]: \(notification.object!) \n")
-        print("notify")
+    @objc func handleNotifyCameraState(notification: Notification) -> Void{
+       if (notification.object as! String != lastCharValue.cameraState){
+            print("camera state changes: \(notification.object!)")
+            lastCharValue.cameraState = notification.object as! String
+            if (lastCharValue.cameraState == "idle") {
+//                cameraStateControl.selectedSegmentIndex = 0
+//                cameraStateControl.sendActions(for: .valueChanged)
+                startShootingButton.isEnabled = true
+            }
+            else if (lastCharValue.cameraState == "shooting") {
+//                cameraStateControl.selectedSegmentIndex = 1
+//                cameraStateControl.sendActions(for: .valueChanged)
+            }
+        }
+    }
+    
+    @objc func handleNotifyShouldTakePhoto(notification: Notification) -> Void{
+        if (notification.object as! String != lastCharValue.shouldTakePhoto){
+            lastCharValue.shouldTakePhoto = notification.object as! String
+            if (lastCharValue.shouldTakePhoto == "false") {
+                CharacteristicInfo.shouldTakePhoto = "false"
+//                shouldTakePhotoSwitch.isOn = false
+//                shouldTakePhotoSwitch.sendActions(for: .valueChanged)
+            }
+            else if (lastCharValue.shouldTakePhoto == "true") {
+                takePhoto()
+                writeOutgoingValue(data: "false" , txChar: BlePeripheral.shouldTakePhotoChar)
+                CharacteristicInfo.shouldTakePhoto = "true"
+//                shouldTakePhotoSwitch.isOn = true
+//                shouldTakePhotoSwitch.sendActions(for: .valueChanged)
+            }
+        }
+    }
+    
+    func takePhoto(){
+        self.shutter.backgroundColor = UIColor.green
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.shutter.backgroundColor = UIColor.systemGray2
+        }
     }
     
     func appendTxDataToTextView(_ textField: UITextField){
@@ -155,26 +192,33 @@ class ConsoleViewController: UIViewController {
         switch sender.selectedSegmentIndex {
             case 0:
                 writeOutgoingValue(data: "idle" , txChar: BlePeripheral.cameraStateChar)
+                CharacteristicInfo.cameraState = "idle"
                 print("camera state -> idle")
                 break
             case 1:
                 writeOutgoingValue(data: "shooting", txChar: BlePeripheral.cameraStateChar)
+                CharacteristicInfo.cameraState = "shooting"
                 print("camera state -> shooting")
                 break
             default:
                 break
         }
     }
+    @IBAction func pressStartButton(_ sender: UIButton) {
+        writeOutgoingValue(data: "shooting", txChar: BlePeripheral.cameraStateChar)
+        CharacteristicInfo.cameraState = "shooting"
+        sender.isEnabled = false
+    }
     
     @IBAction func shouldTakePhotoSwitchAction(_ sender: UISwitch) {
-        if (sender.isOn) {
-            writeOutgoingValue(data: "true" , txChar: BlePeripheral.shouldTakePhotoChar)
-            print("should take photo -> true")
-        }
-        else {
-            writeOutgoingValue(data: "false" , txChar: BlePeripheral.shouldTakePhotoChar)
-            print("should take photo -> false")
-        }
+//        if (sender.isOn) {
+//            writeOutgoingValue(data: "true" , txChar: BlePeripheral.shouldTakePhotoChar)
+//            print("should take photo -> true")
+//        }
+//        else {
+//            writeOutgoingValue(data: "false" , txChar: BlePeripheral.shouldTakePhotoChar)
+//            print("should take photo -> false")
+//        }
     }
     
 }

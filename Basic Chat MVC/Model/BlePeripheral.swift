@@ -25,5 +25,10 @@ class CharacteristicInfo {
     static var numOfPhoto: Int? = 5
     static var angle: Int? = 3
     static var cameraState: String? = "idle"
-    static var shouldTakePhoto: Bool? = false
+    static var shouldTakePhoto: String? = "false"
+}
+
+class lastCharValue {
+    static var cameraState: String? = "idle"
+    static var shouldTakePhoto: String? = "false"
 }
