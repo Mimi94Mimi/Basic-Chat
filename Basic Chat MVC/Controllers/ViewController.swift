@@ -46,7 +46,7 @@
       }
 
       func connectToDevice() -> Void {
-        centralManager?.connect(bluefruitPeripheral!, options: nil)
+          centralManager?.connect(bluefruitPeripheral!, options: nil)
     }
 
       func disconnectFromDevice() -> Void {
@@ -180,6 +180,7 @@
       func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
           stopScanning()
           bluefruitPeripheral.discoverServices([CBUUIDs.BLEService_UUID])
+          peripheral.readRSSI()
       }
   }
 
@@ -232,6 +233,9 @@
                   case CBUUIDs.numOfPhoto_UUID:
                       BlePeripheral.numOfPhotoChar = characteristic
                       break
+                  case CBUUIDs.timeInterval_UUID:
+                      BlePeripheral.timeIntervalChar = characteristic
+                      break
                   case CBUUIDs.angle_UUID:
                       BlePeripheral.angleChar = characteristic
                       break
@@ -244,6 +248,9 @@
                       BlePeripheral.shouldTakePhotoChar = characteristic
                       peripheral.readValue(for: BlePeripheral.shouldTakePhotoChar!)
                       peripheral.setNotifyValue(true, for: BlePeripheral.shouldTakePhotoChar!)
+                      break
+                  case CBUUIDs.connected_UUID:
+                      BlePeripheral.connectedChar = characteristic
                       break
                   default:
                       break
@@ -279,16 +286,17 @@
     }
 
     func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {
-          peripheral.readRSSI()
-      }
+        current_RSSI = RSSI.floatValue
+        peripheral.readRSSI()
+    }
 
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         guard error == nil else {
             print("Error discovering services: error")
             return
         }
-      print("Function: \(#function),Line: \(#line)")
-        print("Message sent")
+//      print("Function: \(#function),Line: \(#line)")
+//        print("Message sent")
     }
 
 
