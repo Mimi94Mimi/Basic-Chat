@@ -35,6 +35,7 @@ class ConsoleViewController: UIViewController {
     @IBOutlet weak var txLabel: UILabel!
     @IBOutlet weak var rxLabel: UILabel!
     @IBOutlet weak var RSSILabel: UILabel!
+    @IBOutlet weak var waitingView: UIActivityIndicatorView!
     
     
     override func viewDidLoad() {
@@ -70,10 +71,21 @@ class ConsoleViewController: UIViewController {
         var connectedCounter = Timer()
         connectedCounter = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(sendCounterValue), userInfo: nil, repeats: true)
         
+        waitingView.isHidden = true
+        
     }
     
     @objc func sendCounterValue() {
-        if (current_RSSI! > -50.0) {connectedCounterValue! += 1}
+        if (current_RSSI! > -50.0) {
+            connectedCounterValue! += 1
+            waitingView.isHidden = true
+        }
+        else {
+            if (waitingView.isHidden == true){
+                waitingView.isHidden = false
+                waitingView.startAnimating()
+            }
+        }
         print(connectedCounterValue!)
         writeOutgoingValue(data: String("\(connectedCounterValue!)"), txChar: BlePeripheral.connectedChar)
     }
